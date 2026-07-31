@@ -172,7 +172,6 @@ export async function syncTimoTransactions(sendLog?: (level: string, message: st
         tx.date,
         tx.item.txnAmount,
         cleanDesc,
-        "Timo",
         "Lương"
       ]);
     } else {
