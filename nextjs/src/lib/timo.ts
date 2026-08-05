@@ -189,7 +189,14 @@ export async function syncTimoTransactions(sendLog?: (level: string, message: st
       ]);
     }
 
-    newTxnSummary += `• <b>Ngày:</b> ${tx.date}\n• <b>Loại:</b> ${tx.type}\n• <b>Số tiền:</b> <code>${tx.item.txnAmount.toFixed(2)}</code>\n• <b>Mô tả:</b> ${tx.item.txnTitle} - ${cleanDesc}\n\n`;
+    const escapeHtml = (unsafe: string) => {
+      return unsafe
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;");
+    };
+
+    newTxnSummary += `• <b>Ngày:</b> ${tx.date}\n• <b>Loại:</b> ${tx.type}\n• <b>Số tiền:</b> <code>${tx.item.txnAmount.toFixed(2)}</code>\n• <b>Mô tả:</b> ${escapeHtml(tx.item.txnTitle)} - ${escapeHtml(cleanDesc)}\n\n`;
   }
 
   // 5. Ghi Batch vào Google Sheets
@@ -244,7 +251,8 @@ export async function syncTimoTransactions(sendLog?: (level: string, message: st
     });
 
     if (!tgResp.ok) {
-      await log("warning", "⚠️ Đã đồng bộ nhưng không thể gửi thông báo Telegram");
+      const errorText = await tgResp.text();
+      await log("warning", `⚠️ Đã đồng bộ nhưng không thể gửi thông báo Telegram. Lỗi: ${errorText}`);
     }
   }
 
