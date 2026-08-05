@@ -156,9 +156,14 @@ export async function syncTimoTransactions(sendLog?: (level: string, message: st
   const batchSpendings: (string | number)[][] = [];
 
   for (const tx of newTxns) {
-    await log("success", `✨ Phát hiện giao dịch mới: ${tx.item.txnTitle} (${Math.abs(tx.item.txnAmount)} VND)`);
-    
     batchHashes.push([tx.hash]);
+
+    if (tx.desc.trim().toLowerCase().startsWith("/rm")) {
+      await log("info", `🗑️ Đã bỏ qua giao dịch do có tag /rm: ${tx.item.txnTitle} (${Math.abs(tx.item.txnAmount)} VND)`);
+      continue;
+    }
+
+    await log("success", `✨ Phát hiện giao dịch mới: ${tx.item.txnTitle} (${Math.abs(tx.item.txnAmount)} VND)`);
 
     const parsed = parseCategoryShortcode(tx.desc);
     const cleanDesc = parsed.cleanDesc;
@@ -224,21 +229,23 @@ export async function syncTimoTransactions(sendLog?: (level: string, message: st
   }
 
   // 6. Gửi Telegram
-  await log("info", "📱 Đang gửi thông báo tổng hợp qua Telegram...");
-  const telegramMsg = `<b>Timo Sheet Update</b>\n━━━━━━━━━━━━━━\n• <b>Cập nhật:</b> ${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}\n\n<b>Chi tiết:</b>\n${newTxnSummary}`;
-  
-  const tgResp = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({
-      chat_id: process.env.TELEGRAM_CHAT_ID,
-      text: telegramMsg,
-      parse_mode: "HTML"
-    })
-  });
+  if (newTxnSummary.trim() !== "") {
+    await log("info", "📱 Đang gửi thông báo tổng hợp qua Telegram...");
+    const telegramMsg = `<b>Timo Sheet Update</b>\n━━━━━━━━━━━━━━\n• <b>Cập nhật:</b> ${new Date().toLocaleString('vi-VN', { timeZone: 'Asia/Ho_Chi_Minh' })}\n\n<b>Chi tiết:</b>\n${newTxnSummary}`;
+    
+    const tgResp = await fetch(`https://api.telegram.org/bot${process.env.TELEGRAM_BOT_TOKEN}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: process.env.TELEGRAM_CHAT_ID,
+        text: telegramMsg,
+        parse_mode: "HTML"
+      })
+    });
 
-  if (!tgResp.ok) {
-    await log("warning", "⚠️ Đã đồng bộ nhưng không thể gửi thông báo Telegram");
+    if (!tgResp.ok) {
+      await log("warning", "⚠️ Đã đồng bộ nhưng không thể gửi thông báo Telegram");
+    }
   }
 
   await log("success", `🎉 Hoàn tất! Đã đồng bộ thành công ${newTxns.length} giao dịch mới.`);
