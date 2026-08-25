@@ -47,6 +47,8 @@ model User {
   accounts       Account[]
   sessions       Session[]
   userRoles      UserRole[]
+  ownedAssetGroups AssetGroup[] @relation("GroupOwner")
+  assetGroupMemberships AssetGroupMember[]
 }
 
 model VerificationToken {
@@ -110,3 +112,49 @@ enum Category {
   THUE_PHI      @map("Thuế/phí")
   BAO_DUONG     @map("Bảo dưỡng")
 }
+
+enum AssetType {
+  SAVINGS
+  GOLD
+}
+
+model AssetGroup {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  ownerId     String
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  owner       User               @relation("GroupOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  members     AssetGroupMember[]
+  assets      Asset[]
+}
+
+model AssetGroupMember {
+  id        String   @id @default(cuid())
+  groupId   String
+  userId    String
+  role      String   @default("VIEW")
+  joinedAt  DateTime @default(now())
+
+  group     AssetGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([groupId, userId])
+}
+
+model Asset {
+  id          String   @id @default(cuid())
+  groupId     String
+  type        AssetType
+  name        String
+  value       Float?   
+  description String?
+  details     Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  group       AssetGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+}
+

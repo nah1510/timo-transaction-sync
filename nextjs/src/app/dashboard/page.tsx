@@ -66,6 +66,15 @@ export default function DashboardPage() {
                 </div>
               )}
               
+              {/* Asset Management Card */}
+              <div 
+                onClick={() => router.push('/dashboard/assets')}
+                className="p-4 border border-white/10 rounded bg-white/5 hover:border-neon-green/50 transition-colors cursor-pointer group"
+              >
+                <h3 className="text-white font-mono font-bold mb-2 group-hover:text-neon-green transition-colors">Quản lý Tài sản</h3>
+                <p className="text-sm text-gray-400 font-sans">Tạo nhóm tài sản chung, theo dõi Sổ tiết kiệm & Vàng.</p>
+              </div>
+              
               {/* Family Tree Card */}
               <div className="p-4 border border-white/10 rounded bg-white/5 hover:border-neon-green/50 transition-colors cursor-pointer group">
                 <h3 className="text-white font-mono font-bold mb-2 group-hover:text-neon-green transition-colors">Danh bạ Gia đình</h3>
