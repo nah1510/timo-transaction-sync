@@ -71,6 +71,15 @@ export default function DashboardPage() {
                 <h3 className="text-white font-mono font-bold mb-2 group-hover:text-neon-green transition-colors">Danh bạ Gia đình</h3>
                 <p className="text-sm text-gray-400 font-sans">Quản lý và xem danh bạ thông tin gia đình.</p>
               </div>
+
+              {/* Settings Card */}
+              <div 
+                onClick={() => router.push('/dashboard/settings')}
+                className="p-4 border border-white/10 rounded bg-white/5 hover:border-neon-green/50 transition-colors cursor-pointer group"
+              >
+                <h3 className="text-white font-mono font-bold mb-2 group-hover:text-neon-green transition-colors">Cài đặt Tài khoản</h3>
+                <p className="text-sm text-gray-400 font-sans">Quản lý bảo mật và đổi mật khẩu đăng nhập.</p>
+              </div>
             </div>
 
             <div className="pt-4 border-t border-neon-green/20">

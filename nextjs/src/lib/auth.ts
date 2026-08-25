@@ -1,7 +1,9 @@
 import { NextAuthOptions, Session, User, Account } from "next-auth";
 import { JWT } from "next-auth/jwt";
 import GoogleProvider from "next-auth/providers/google";
+import CredentialsProvider from "next-auth/providers/credentials";
 import { PrismaAdapter } from "@auth/prisma-adapter";
+import bcrypt from "bcryptjs";
 import prisma from "@/lib/prisma";
 
 export const authOptions: NextAuthOptions = {
@@ -18,6 +20,69 @@ export const authOptions: NextAuthOptions = {
           response_type: "code",
           scope: "openid email profile https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/spreadsheets",
         }
+      }
+    }),
+    CredentialsProvider({
+      name: "Credentials",
+      credentials: {
+        email: { label: "Email", type: "email" },
+        password: { label: "Password", type: "password" }
+      },
+      async authorize(credentials) {
+        if (!credentials?.email || !credentials?.password) {
+          throw new Error("Vui lòng nhập email và mật khẩu");
+        }
+
+        const email = credentials.email.toLowerCase();
+        const password = credentials.password;
+
+        const user = await prisma.user.findUnique({ where: { email } });
+
+        if (!user) {
+          const hashedPassword = await bcrypt.hash(password, 10);
+          const newUser = await prisma.user.create({
+            data: {
+              email,
+              password: hashedPassword,
+            }
+          });
+
+          await prisma.role.upsert({
+            where: { id: "Guest" },
+            update: {},
+            create: { id: "Guest", description: "Người dùng mới chưa được phân quyền" }
+          });
+          
+          await prisma.userRole.create({
+            data: { userId: newUser.id, roleId: "Guest" }
+          });
+
+          return newUser;
+        }
+
+        if (!user.password) {
+          const emailPrefix = email.split('@')[0];
+          const createdYear = user.createdAt ? new Date(user.createdAt).getFullYear() : new Date().getFullYear();
+          const defaultPassword = `${emailPrefix}@${createdYear}`;
+
+          if (password === defaultPassword) {
+            const hashedPassword = await bcrypt.hash(password, 10);
+            const updatedUser = await prisma.user.update({
+              where: { id: user.id },
+              data: { password: hashedPassword }
+            });
+            return updatedUser;
+          } else {
+            throw new Error(`Tài khoản chưa đặt mật khẩu. Mật khẩu mặc định là: ${defaultPassword}`);
+          }
+        }
+
+        const isValid = await bcrypt.compare(password, user.password);
+        if (!isValid) {
+          throw new Error("Sai mật khẩu");
+        }
+
+        return user;
       }
     }),
   ],

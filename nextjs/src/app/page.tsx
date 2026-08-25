@@ -212,7 +212,7 @@ export default function Home() {
           </div>
 
           {/* Terminal Body */}
-          <div className="p-6 font-mono text-sm md:text-base space-y-6 text-gray-300 overflow-y-auto max-h-[80vh] scrollbar-hide">
+          <div className="p-6 font-mono text-sm md:text-base space-y-6 text-gray-300 overflow-y-auto h-[500px] md:h-[600px] max-h-[80vh] scrollbar-hide">
             
             {/* Boot Sequence */}
             <div className="space-y-1">
