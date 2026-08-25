@@ -148,6 +148,7 @@ export const authOptions: NextAuthOptions = {
   },
   events: {
     async createUser({ user }: { user: User }) {
+      console.log("[NextAuth Event] User created:", user.email);
       await prisma.role.upsert({
         where: { id: "Guest" },
         update: {},
@@ -160,6 +161,18 @@ export const authOptions: NextAuthOptions = {
           roleId: "Guest",
         }
       });
+    }
+  },
+  debug: true,
+  logger: {
+    error(code, metadata) {
+      console.error(`[NEXTAUTH ERROR] Code: ${code}`, metadata);
+    },
+    warn(code) {
+      console.warn(`[NEXTAUTH WARN] Code: ${code}`);
+    },
+    debug(code, metadata) {
+      console.log(`[NEXTAUTH DEBUG] Code: ${code}`, metadata);
     }
   },
   pages: {
